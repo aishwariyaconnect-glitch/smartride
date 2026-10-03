@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Customers - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Registered Customers Directory</h2>
+        <p class="text-muted mb-0">List of registered user accounts and their rental history overview</p>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table custom-table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Email Address</th>
+                        <th>Phone Number</th>
+                        <th>Registration Date</th>
+                        <th>Bookings Count</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in customer_stats %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                                    {{ item.user.full_name[0]|upper }}
+                                </div>
+                                <strong class="text-dark">{{ item.user.full_name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ item.user.email }}</td>
+                        <td><i class="bi bi-telephone me-1 text-muted"></i>{{ item.user.phone }}</td>
+                        <td><span class="small text-muted">{{ item.user.created_at.strftime('%d %b %Y') }}</span></td>
+                        <td><span class="badge bg-light text-dark border px-3 py-2 fs-6">{{ item.booking_count }} Bookings</span></td>
+                        <td><strong class="text-success">₹{{ '%.2f'|format(item.total_spent) }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

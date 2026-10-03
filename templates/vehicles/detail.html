@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ vehicle.name }} - Details & Booking{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('vehicle_list') }}">Vehicles</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ vehicle.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Vehicle Specification Column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                <div class="vehicle-img-wrap" style="height: 380px;">
+                    <img src="{{ vehicle.image_url }}" alt="{{ vehicle.name }}" class="w-100 h-100 object-fit-cover">
+                    <span class="badge-type">{{ vehicle.vehicle_type }}</span>
+                    <span class="badge-price fs-5">₹{{ '%.0f'|format(vehicle.price_per_day) }} / day</span>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h2 class="fw-bold mb-1">{{ vehicle.name }}</h2>
+                            <p class="text-muted mb-0"><i class="bi bi-tag-fill text-primary me-1"></i>{{ vehicle.brand }} {{ vehicle.model }}</p>
+                        </div>
+                        {% if vehicle.is_available %}
+                            <span class="badge status-approved fs-6"><i class="bi bi-check-circle me-1"></i>Available</span>
+                        {% else %}
+                            <span class="badge status-rejected fs-6"><i class="bi bi-x-circle me-1"></i>Unavailable</span>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="fw-bold mb-3">Vehicle Specifications</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="bg-light p-3 rounded-3 text-center">
+                                <span class="text-muted d-block small">Reg Number</span>
+                                <strong class="text-dark">{{ vehicle.vehicle_number }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="bg-light p-3 rounded-3 text-center">
+                                <span class="text-muted d-block small">Fuel Type</span>
+                                <strong class="text-warning"><i class="bi bi-fuel-pump me-1"></i>{{ vehicle.fuel_type }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="bg-light p-3 rounded-3 text-center">
+                                <span class="text-muted d-block small">Seating</span>
+                                <strong class="text-info"><i class="bi bi-people me-1"></i>{{ vehicle.seating_capacity }} Seats</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="bg-light p-3 rounded-3 text-center">
+                                <span class="text-muted d-block small">Location</span>
+                                <strong class="text-danger"><i class="bi bi-geo-alt me-1"></i>{{ vehicle.location }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Description</h5>
+                    <p class="text-muted lh-lg">{{ vehicle.description or 'No extra description provided.' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form Widget Column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 p-4 sticky-top" style="top: 95px;">
+                <h4 class="fw-bold mb-3"><i class="bi bi-calendar-check text-primary me-2"></i>Book Vehicle</h4>
+                <p class="text-muted small mb-4">Select your pickup and return dates to calculate total rental cost.</p>
+
+                {% if not vehicle.is_available %}
+                    <div class="alert alert-danger mb-0 rounded-3">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>This vehicle is currently marked as unavailable by admin.
+                    </div>
+                {% elif session.get('user_role') == 'admin' %}
+                    <div class="alert alert-warning mb-0 rounded-3">
+                        <i class="bi bi-info-circle-fill me-2"></i>You are logged in as an Admin. Please switch to a Customer account to make bookings.
+                    </div>
+                {% else %}
+                    <form action="{{ url_for('book_vehicle', vehicle_id=vehicle.id) }}" method="POST">
+                        <input type="hidden" id="vehicle_id" value="{{ vehicle.id }}">
+                        <input type="hidden" id="price_per_day" value="{{ vehicle.price_per_day }}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Pickup Date</label>
+                            <input type="date" name="pickup_date" id="pickup_date" class="form-control form-control-lg bg-light" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Return Date</label>
+                            <input type="date" name="return_date" id="return_date" class="form-control form-control-lg bg-light" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Additional Notes (Optional)</label>
+                            <textarea name="notes" class="form-control bg-light" rows="2" placeholder="Pickup time or special requests..."></textarea>
+                        </div>
+
+                        <!-- Dynamic Availability Alert -->
+                        <div id="availabilityAlert" class="alert d-none mt-3" role="alert"></div>
+
+                        <!-- Dynamic Price Breakdown Box -->
+                        <div id="costBreakdownBox" class="bg-light p-3 rounded-3 mb-4 d-none border">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Rate / Day:</span>
+                                <span>₹{{ '%.2f'|format(vehicle.price_per_day) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Total Rental Duration:</span>
+                                <span><strong id="displayDays">0</strong> Days</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between fs-5 fw-bold text-dark">
+                                <span>Total Estimated Cost:</span>
+                                <span class="text-primary" id="displayTotalCost">₹0.00</span>
+                            </div>
+                        </div>
+
+                        {% if session.get('user_id') %}
+                            <button type="submit" id="submitBookingBtn" class="btn btn-warning w-100 py-3 rounded-3 fw-bold shadow" disabled>
+                                <i class="bi bi-bookmark-plus me-2"></i>Confirm & Book Now
+                            </button>
+                        {% else %}
+                            <div class="text-center p-3 bg-light rounded-3 border">
+                                <p class="text-muted small mb-2">You need to log in to complete your booking.</p>
+                                <a href="{{ url_for('login', next=request.url) }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                    Login to Book
+                                </a>
+                            </div>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

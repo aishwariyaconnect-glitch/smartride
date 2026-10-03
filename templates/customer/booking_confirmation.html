@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Receipt #{{ booking.id }} - SmartRide{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0"><i class="bi bi-receipt-cutoff text-warning me-2"></i>Booking Receipt</h4>
+                        <span class="small text-muted">Booking Reference: #SR-{{ "%05d"|format(booking.id) }}</span>
+                    </div>
+                    {% if booking.status == 'Approved' %}
+                        <span class="badge status-approved fs-6"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                    {% elif booking.status == 'Pending' %}
+                        <span class="badge status-pending fs-6"><i class="bi bi-hourglass-split me-1"></i>Pending Approval</span>
+                    {% elif booking.status == 'Completed' %}
+                        <span class="badge status-completed fs-6"><i class="bi bi-flag me-1"></i>Completed</span>
+                    {% elif booking.status == 'Cancelled' %}
+                        <span class="badge status-cancelled fs-6"><i class="bi bi-dash-circle me-1"></i>Cancelled</span>
+                    {% else %}
+                        <span class="badge status-rejected fs-6"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted uppercase small">Customer Details</h6>
+                            <h5 class="fw-bold text-dark mb-1">{{ booking.user.full_name }}</h5>
+                            <p class="small text-muted mb-0"><i class="bi bi-envelope me-1"></i>{{ booking.user.email }}</p>
+                            <p class="small text-muted mb-0"><i class="bi bi-telephone me-1"></i>{{ booking.user.phone }}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h6 class="fw-bold text-muted uppercase small">Booking Date</h6>
+                            <p class="fw-bold mb-1">{{ booking.created_at.strftime('%d %B %Y, %I:%M %p') }}</p>
+                            <span class="badge bg-light text-dark border">Payment Mode: Pay at Pickup</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Vehicle Card -->
+                    <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-4 mb-4">
+                        <img src="{{ booking.vehicle.image_url }}" alt="{{ booking.vehicle.name }}" class="rounded-3" style="width: 100px; height: 75px; object-fit: cover;">
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ booking.vehicle.name }}</h5>
+                            <span class="badge bg-primary me-2">{{ booking.vehicle.vehicle_type }}</span>
+                            <span class="small text-muted"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ booking.vehicle.location }}</span>
+                            <p class="small text-dark mb-0 mt-1">Reg No: <strong>{{ booking.vehicle.vehicle_number }}</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="border p-3 rounded-3 text-center">
+                                <span class="small text-muted d-block">Pickup Date</span>
+                                <strong class="text-success"><i class="bi bi-calendar-event me-1"></i>{{ booking.pickup_date.strftime('%d %b %Y') }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border p-3 rounded-3 text-center">
+                                <span class="small text-muted d-block">Return Date</span>
+                                <strong class="text-danger"><i class="bi bi-calendar-check me-1"></i>{{ booking.return_date.strftime('%d %b %Y') }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border p-3 rounded-3 text-center">
+                                <span class="small text-muted d-block">Total Days</span>
+                                <strong class="text-dark">{{ booking.total_days }} Day(s)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Calculation Table -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Rate / Day</th>
+                                    <th class="text-end">Days</th>
+                                    <th class="text-end">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Rental Charge for {{ booking.vehicle.name }}</td>
+                                    <td class="text-end">₹{{ '%.2f'|format(booking.vehicle.price_per_day) }}</td>
+                                    <td class="text-end">{{ booking.total_days }}</td>
+                                    <td class="text-end fw-bold">₹{{ '%.2f'|format(booking.total_price) }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold fs-5">Grand Total Payable:</td>
+                                    <td class="text-end fw-bold fs-5 text-primary">₹{{ '%.2f'|format(booking.total_price) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    {% if booking.notes %}
+                        <div class="bg-light p-3 rounded-3 mb-4">
+                            <strong class="small text-muted d-block">Customer Notes:</strong>
+                            <p class="small mb-0">{{ booking.notes }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i>Back to My Bookings
+                        </a>
+                        <button onclick="window.print();" class="btn btn-dark rounded-pill px-4">
+                            <i class="bi bi-printer me-1"></i>Print Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

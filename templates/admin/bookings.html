@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Bookings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-calendar-check text-primary me-2"></i>Booking Requests Management</h2>
+            <p class="text-muted mb-0">Review pending customer requests, approve, reject, or mark as completed</p>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="btn-group btn-group-sm" role="group">
+            <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline-dark {% if not current_filter %}active{% endif %}">All</a>
+            <a href="{{ url_for('admin_bookings', status='Pending') }}" class="btn btn-outline-warning {% if current_filter == 'Pending' %}active{% endif %}">Pending</a>
+            <a href="{{ url_for('admin_bookings', status='Approved') }}" class="btn btn-outline-success {% if current_filter == 'Approved' %}active{% endif %}">Approved</a>
+            <a href="{{ url_for('admin_bookings', status='Completed') }}" class="btn btn-outline-primary {% if current_filter == 'Completed' %}active{% endif %}">Completed</a>
+            <a href="{{ url_for('admin_bookings', status='Cancelled') }}" class="btn btn-outline-secondary {% if current_filter == 'Cancelled' %}active{% endif %}">Cancelled</a>
+            <a href="{{ url_for('admin_bookings', status='Rejected') }}" class="btn btn-outline-danger {% if current_filter == 'Rejected' %}active{% endif %}">Rejected</a>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table custom-table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Vehicle Details</th>
+                        <th>Dates</th>
+                        <th>Days</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th class="text-end">Manage Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td><strong class="text-dark">#{{ b.id }}</strong></td>
+                        <td>
+                            <strong class="text-dark d-block">{{ b.user.full_name }}</strong>
+                            <span class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ b.user.phone }}</span>
+                            <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ b.user.email }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ b.vehicle.image_url }}" alt="{{ b.vehicle.name }}" class="rounded-3" style="width: 50px; height: 35px; object-fit: cover;">
+                                <div>
+                                    <strong class="text-dark d-block">{{ b.vehicle.name }}</strong>
+                                    <span class="small text-muted">{{ b.vehicle.vehicle_number }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">
+                            <div class="text-success"><i class="bi bi-arrow-right-circle me-1"></i><strong>Pick:</strong> {{ b.pickup_date.strftime('%d %b %Y') }}</div>
+                            <div class="text-danger"><i class="bi bi-arrow-left-circle me-1"></i><strong>Ret:</strong> {{ b.return_date.strftime('%d %b %Y') }}</div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ b.total_days }} Days</span></td>
+                        <td><strong class="text-primary">₹{{ '%.2f'|format(b.total_price) }}</strong></td>
+                        <td>
+                            {% if b.status == 'Pending' %}
+                                <span class="badge status-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                            {% elif b.status == 'Approved' %}
+                                <span class="badge status-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                            {% elif b.status == 'Completed' %}
+                                <span class="badge status-completed"><i class="bi bi-flag me-1"></i>Completed</span>
+                            {% elif b.status == 'Cancelled' %}
+                                <span class="badge status-cancelled"><i class="bi bi-dash-circle me-1"></i>Cancelled</span>
+                            {% else %}
+                                <span class="badge status-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                {% if b.status == 'Pending' %}
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Approved') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-3">Approve</button>
+                                    </form>
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Rejected') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-3">Reject</button>
+                                    </form>
+                                {% elif b.status == 'Approved' %}
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Completed') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-primary rounded-3">Mark Completed</button>
+                                    </form>
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Cancelled') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary rounded-3">Cancel</button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('booking_confirmation', booking_id=b.id) }}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

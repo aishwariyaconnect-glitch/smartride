@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookings - SmartRide{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>My Rental Bookings</h2>
+            <p class="text-muted mb-0">Track and manage all your past and active vehicle reservations</p>
+        </div>
+        <a href="{{ url_for('vehicle_list') }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Book New Vehicle
+        </a>
+    </div>
+
+    {% if bookings %}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table custom-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Vehicle</th>
+                            <th>Rental Dates</th>
+                            <th>Duration</th>
+                            <th>Total Price</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bookings %}
+                        <tr>
+                            <td><strong class="text-dark">#{{ b.id }}</strong></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ b.vehicle.image_url }}" alt="{{ b.vehicle.name }}" class="rounded-3" style="width: 60px; height: 45px; object-fit: cover;">
+                                    <div>
+                                        <h6 class="fw-bold mb-0">{{ b.vehicle.name }}</h6>
+                                        <span class="small text-muted">{{ b.vehicle.vehicle_number }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div><i class="bi bi-calendar-event text-success me-1"></i><strong>Pickup:</strong> {{ b.pickup_date.strftime('%d %b %Y') }}</div>
+                                    <div><i class="bi bi-calendar-check text-danger me-1"></i><strong>Return:</strong> {{ b.return_date.strftime('%d %b %Y') }}</div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ b.total_days }} Day(s)</span></td>
+                            <td><strong class="text-primary">₹{{ '%.2f'|format(b.total_price) }}</strong></td>
+                            <td>
+                                {% if b.status == 'Pending' %}
+                                    <span class="badge status-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                {% elif b.status == 'Approved' %}
+                                    <span class="badge status-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                                {% elif b.status == 'Rejected' %}
+                                    <span class="badge status-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                {% elif b.status == 'Cancelled' %}
+                                    <span class="badge status-cancelled"><i class="bi bi-dash-circle me-1"></i>Cancelled</span>
+                                {% elif b.status == 'Completed' %}
+                                    <span class="badge status-completed"><i class="bi bi-flag me-1"></i>Completed</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="{{ url_for('booking_confirmation', booking_id=b.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-receipt me-1"></i>Receipt
+                                    </a>
+
+                                    {% if b.status in ['Pending', 'Approved'] and b.pickup_date > today_date %}
+                                        <form action="{{ url_for('cancel_booking', booking_id=b.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel booking #{{ b.id }}?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm p-5">
+            <div class="fs-1 text-muted mb-3"><i class="bi bi-journal-x"></i></div>
+            <h4 class="fw-bold">No Bookings Yet</h4>
+            <p class="text-muted">You haven't booked any vehicles yet. Explore our fleet and rent your ride today!</p>
+            <a href="{{ url_for('vehicle_list') }}" class="btn btn-warning rounded-pill px-4 mt-2 fw-bold">
+                Browse Fleet
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

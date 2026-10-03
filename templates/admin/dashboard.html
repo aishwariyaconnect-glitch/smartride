@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - SmartRide{% endblock %}
+
+{% block content %}
+<div class="bg-dark text-white py-4 mb-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill mb-2 fw-bold">Admin Management Portal</span>
+                <h2 class="fw-bold mb-0">System Control Center</h2>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_vehicles') }}" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-truck me-1"></i>Vehicles
+                </a>
+                <a href="{{ url_for('admin_bookings') }}" class="btn btn-warning rounded-pill px-3 fw-bold">
+                    <i class="bi bi-calendar-check me-1"></i>Bookings
+                    {% if pending_count > 0 %}
+                        <span class="badge bg-danger rounded-pill ms-1">{{ pending_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    {% if pending_count > 0 %}
+        <div class="alert alert-warning alert-dismissible fade show rounded-4 shadow-sm mb-4 p-4" role="alert">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="fs-2 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Pending Approval Requests</h5>
+                        <p class="mb-0 small text-muted">You have <strong>{{ pending_count }}</strong> booking(s) waiting for admin review and approval.</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin_bookings', status='Pending') }}" class="btn btn-dark rounded-pill px-4 fw-bold">Review Pending Bookings</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- KPI Analytics Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-revenue">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold">Total Revenue</span>
+                    <h3 class="fw-bold text-dark mb-0">₹{{ '%.0f'|format(total_revenue) }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-bookings">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold">Total Bookings</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ total_bookings }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-vehicles">
+                    <i class="bi bi-car-front-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold">Total Vehicles</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ total_vehicles }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-customers">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold">Registered Customers</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ total_customers }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Bar -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <a href="{{ url_for('admin_vehicles') }}" class="card border-0 shadow-sm p-4 text-center rounded-4 text-decoration-none text-dark h-100 bg-white hover-shadow">
+                <div class="fs-1 text-primary mb-2"><i class="bi bi-card-checklist"></i></div>
+                <h5 class="fw-bold mb-1">Manage Vehicles Inventory</h5>
+                <p class="text-muted small mb-0">Add new vehicles, edit specifications, or toggle availability status.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('admin_bookings') }}" class="card border-0 shadow-sm p-4 text-center rounded-4 text-decoration-none text-dark h-100 bg-white hover-shadow">
+                <div class="fs-1 text-success mb-2"><i class="bi bi-calendar2-range-fill"></i></div>
+                <h5 class="fw-bold mb-1">Manage Booking Requests</h5>
+                <p class="text-muted small mb-0">Approve or reject customer reservations and track rental statuses.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('admin_customers') }}" class="card border-0 shadow-sm p-4 text-center rounded-4 text-decoration-none text-dark h-100 bg-white hover-shadow">
+                <div class="fs-1 text-info mb-2"><i class="bi bi-person-lines-fill"></i></div>
+                <h5 class="fw-bold mb-1">View Customer List</h5>
+                <p class="text-muted small mb-0">Overview of all registered users and their rental spending history.</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Bookings Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Booking Activity</h5>
+            <a href="{{ url_for('admin_bookings') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All Bookings</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table custom-table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Rental Period</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in recent_bookings %}
+                    <tr>
+                        <td><strong>#{{ b.id }}</strong></td>
+                        <td>
+                            <strong class="text-dark">{{ b.user.full_name }}</strong>
+                            <div class="small text-muted">{{ b.user.phone }}</div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-dark">{{ b.vehicle.name }}</span>
+                            <div class="small text-muted">{{ b.vehicle.vehicle_number }}</div>
+                        </td>
+                        <td class="small">
+                            {{ b.pickup_date.strftime('%d %b') }} to {{ b.return_date.strftime('%d %b %Y') }} ({{ b.total_days }} days)
+                        </td>
+                        <td><strong class="text-primary">₹{{ '%.2f'|format(b.total_price) }}</strong></td>
+                        <td>
+                            {% if b.status == 'Pending' %}
+                                <span class="badge status-pending">Pending</span>
+                            {% elif b.status == 'Approved' %}
+                                <span class="badge status-approved">Approved</span>
+                            {% elif b.status == 'Completed' %}
+                                <span class="badge status-completed">Completed</span>
+                            {% elif b.status == 'Cancelled' %}
+                                <span class="badge status-cancelled">Cancelled</span>
+                            {% else %}
+                                <span class="badge status-rejected">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if b.status == 'Pending' %}
+                                <div class="btn-group btn-group-sm">
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Approved') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-success rounded-start px-2">Approve</button>
+                                    </form>
+                                    <form action="{{ url_for('update_booking_status', booking_id=b.id, new_status='Rejected') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger rounded-end px-2">Reject</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <a href="{{ url_for('booking_confirmation', booking_id=b.id) }}" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-eye"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

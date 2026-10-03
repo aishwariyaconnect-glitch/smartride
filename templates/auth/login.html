@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - SmartRide{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h4 class="fw-bold mb-1"><i class="bi bi-box-arrow-in-right text-warning me-2"></i>Welcome Back</h4>
+                    <p class="small text-muted mb-0">Sign in to manage your bookings or administration</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form action="{{ url_for('login') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" class="form-control" placeholder="name@example.com" value="{{ email or '' }}" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold mb-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </form>
+
+                    <!-- Demo Credentials Helper Box for Viva Presentation -->
+                    <div class="bg-light p-3 rounded-3 border mt-4">
+                        <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-info-circle-fill text-primary me-1"></i>Demo Accounts for Testing & Viva:</h6>
+                        <div class="small text-muted">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><strong>Admin:</strong> admin@smartride.com</span>
+                                <code>admin123</code>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Customer:</strong> john@example.com</span>
+                                <code>customer123</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-0">Don't have an account? <a href="{{ url_for('register') }}" class="text-primary fw-bold">Register Here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

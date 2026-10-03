@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}SmartRide - Rent Your Ride, Your Way{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section text-center text-lg-start">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">
+                    <i class="bi bi-star-fill me-1"></i> #1 Vehicle Rental Platform
+                </span>
+                <h1 class="hero-title mb-3">Rent Your Ride, <span class="text-warning">Your Way</span></h1>
+                <p class="hero-subtitle mb-4">Find reliable cars, bikes, scooters, and vans at affordable daily prices. Quick booking with transparent rates and instant availability check.</p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('vehicle_list') }}" class="btn btn-warning btn-lg rounded-pill fw-bold px-4 shadow">
+                        <i class="bi bi-search me-2"></i>Browse Vehicles
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                        <i class="bi bi-person-plus me-2"></i>Register Now
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-5">
+                <!-- Search Box Card -->
+                <div class="card border-0 shadow-lg p-4 rounded-4 bg-white text-dark">
+                    <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-funnel-fill text-indigo me-2"></i>Find Available Vehicle</h5>
+                    <form action="{{ url_for('vehicle_list') }}" method="GET">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Keyword / Model Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                <input type="text" name="q" class="form-control bg-light" placeholder="e.g. Etios, Activa, Royal Enfield">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Vehicle Type</label>
+                            <select name="type" class="form-select bg-light">
+                                <option value="">All Vehicle Types</option>
+                                <option value="Car">🚗 Car</option>
+                                <option value="Bike">🏍 Bike</option>
+                                <option value="Scooter">🛵 Scooter</option>
+                                <option value="Van">🚐 Van</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Pickup Location</label>
+                            <input type="text" name="location" class="form-control bg-light" placeholder="e.g. Chennai, Coimbatore">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Search Availability
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Vehicle Categories Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Vehicle Categories</h2>
+            <p class="text-muted">Choose from our wide fleet of vehicles suited for every trip</p>
+        </div>
+
+        <div class="row g-4">
+            {% for cat in categories %}
+            <div class="col-6 col-md-3">
+                <a href="{{ url_for('vehicle_list', type=cat.type) }}" class="category-card">
+                    <div class="category-icon">
+                        <i class="bi {{ cat.icon }}"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ cat.name }}</h5>
+                    <span class="badge bg-light text-dark border">{{ cat.count }} Available</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Vehicles Grid -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">Featured Vehicles</h2>
+                <p class="text-muted mb-0">Handpicked top-rated vehicles ready for instant rental</p>
+            </div>
+            <a href="{{ url_for('vehicle_list') }}" class="btn btn-outline-primary rounded-pill px-4">
+                View All Vehicles <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for v in featured_vehicles %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card vehicle-card h-100">
+                    <div class="vehicle-img-wrap">
+                        <img src="{{ v.image_url }}" alt="{{ v.name }}">
+                        <span class="badge-type">{{ v.vehicle_type }}</span>
+                        <span class="badge-price">₹{{ '%.0f'|format(v.price_per_day) }}/day</span>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0 text-dark">{{ v.name }}</h5>
+                        </div>
+                        <p class="text-muted small mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ v.location }}</p>
+
+                        <div class="row text-center g-2 bg-light p-2 rounded-3 mb-3 small fw-semibold">
+                            <div class="col-4 border-end">
+                                <i class="bi bi-shield-check text-primary me-1"></i>{{ v.brand }}
+                            </div>
+                            <div class="col-4 border-end">
+                                <i class="bi bi-fuel-pump text-warning me-1"></i>{{ v.fuel_type }}
+                            </div>
+                            <div class="col-4">
+                                <i class="bi bi-people text-info me-1"></i>{{ v.seating_capacity }} Seats
+                            </div>
+                        </div>
+
+                        <p class="card-text text-muted small flex-grow-1">{{ v.description|truncate(90) }}</p>
+
+                        <div class="pt-3 border-top d-flex align-items-center justify-content-between">
+                            {% if v.is_available %}
+                                <span class="badge status-approved"><i class="bi bi-check-circle me-1"></i>Available</span>
+                            {% else %}
+                                <span class="badge status-rejected"><i class="bi bi-x-circle me-1"></i>Booked</span>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('vehicle_detail', vehicle_id=v.id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                                View Details <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80" alt="About SmartRide" class="img-fluid rounded-4 shadow">
+            </div>
+            <div class="col-lg-6">
+                <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold mb-2">About SmartRide</span>
+                <h2 class="fw-bold mb-3">Seamless Vehicle Rental for Every Journey</h2>
+                <p class="text-muted">SmartRide is a web-based vehicle rental system built to eliminate hassle from renting cars, bikes, scooters, and vans. Whether you need a scooter for city errands or a 12-seater van for a family vacation, SmartRide provides transparent pricing, instant booking verification, and customer satisfaction.</p>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light p-3 rounded-3 text-primary fs-4"><i class="bi bi-lightning-charge-fill"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Instant Booking</h6>
+                                <span class="small text-muted">Real-time availability</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light p-3 rounded-3 text-success fs-4"><i class="bi bi-cash-stack"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">No Hidden Costs</h6>
+                                <span class="small text-muted">Daily rate transparency</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Get In Touch</h2>
+            <p class="text-muted">Have questions or need assistance? Reach out to our 24/7 customer support.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center h-100 rounded-4">
+                    <div class="fs-1 text-primary mb-3"><i class="bi bi-envelope-open-fill"></i></div>
+                    <h5 class="fw-bold">Email Us</h5>
+                    <p class="text-muted small">support@smartride.com</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center h-100 rounded-4">
+                    <div class="fs-1 text-success mb-3"><i class="bi bi-telephone-inbound-fill"></i></div>
+                    <h5 class="fw-bold">Call Us</h5>
+                    <p class="text-muted small">+91 98765 43210</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center h-100 rounded-4">
+                    <div class="fs-1 text-warning mb-3"><i class="bi bi-geo-alt-fill"></i></div>
+                    <h5 class="fw-bold">Visit HQ</h5>
+                    <p class="text-muted small">SmartRide HQ, Tech Park, Chennai</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

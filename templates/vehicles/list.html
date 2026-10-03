@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Vehicles - SmartRide{% endblock %}
+
+{% block content %}
+<div class="bg-dark text-white py-5 mb-5">
+    <div class="container text-center">
+        <h1 class="fw-bold mb-2">Available <span class="text-warning">Vehicles</span></h1>
+        <p class="text-muted">Browse, filter, and choose your preferred vehicle for rental</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <!-- Sidebar Filter -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4 sticky-top" style="top: 90px;">
+                <h5 class="fw-bold mb-3"><i class="bi bi-funnel-fill text-primary me-2"></i>Filter Fleet</h5>
+                
+                <form action="{{ url_for('vehicle_list') }}" method="GET">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Search Keyword</label>
+                        <input type="text" name="q" class="form-control" placeholder="Name, brand, model..." value="{{ search_query }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Vehicle Type</label>
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="Car" {% if selected_type == 'Car' %}selected{% endif %}>🚗 Car</option>
+                            <option value="Bike" {% if selected_type == 'Bike' %}selected{% endif %}>🏍 Bike</option>
+                            <option value="Scooter" {% if selected_type == 'Scooter' %}selected{% endif %}>🛵 Scooter</option>
+                            <option value="Van" {% if selected_type == 'Van' %}selected{% endif %}>🚐 Van</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Location</label>
+                        <select name="location" class="form-select">
+                            <option value="">All Locations</option>
+                            {% for loc in unique_locations %}
+                                <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">Max Price Per Day (₹)</label>
+                        <input type="number" name="max_price" class="form-control" placeholder="e.g. 2000" value="{{ max_price }}">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-bold py-2">
+                            <i class="bi bi-filter me-1"></i>Apply Filters
+                        </button>
+                        <a href="{{ url_for('vehicle_list') }}" class="btn btn-outline-secondary rounded-3 btn-sm text-center">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Vehicle Grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <span class="text-muted small fw-semibold">Showing <strong>{{ vehicles|length }}</strong> vehicles</span>
+                
+                <!-- Quick Category Pills -->
+                <div class="btn-group btn-group-sm" role="group">
+                    <a href="{{ url_for('vehicle_list') }}" class="btn btn-outline-dark {% if not selected_type %}active{% endif %}">All</a>
+                    <a href="{{ url_for('vehicle_list', type='Car') }}" class="btn btn-outline-dark {% if selected_type == 'Car' %}active{% endif %}">Cars</a>
+                    <a href="{{ url_for('vehicle_list', type='Bike') }}" class="btn btn-outline-dark {% if selected_type == 'Bike' %}active{% endif %}">Bikes</a>
+                    <a href="{{ url_for('vehicle_list', type='Scooter') }}" class="btn btn-outline-dark {% if selected_type == 'Scooter' %}active{% endif %}">Scooters</a>
+                    <a href="{{ url_for('vehicle_list', type='Van') }}" class="btn btn-outline-dark {% if selected_type == 'Van' %}active{% endif %}">Vans</a>
+                </div>
+            </div>
+
+            {% if vehicles %}
+                <div class="row g-4">
+                    {% for v in vehicles %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card vehicle-card h-100">
+                            <div class="vehicle-img-wrap">
+                                <img src="{{ v.image_url }}" alt="{{ v.name }}">
+                                <span class="badge-type">{{ v.vehicle_type }}</span>
+                                <span class="badge-price">₹{{ '%.0f'|format(v.price_per_day) }}/day</span>
+                            </div>
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h5 class="card-title fw-bold mb-1 text-dark">{{ v.name }}</h5>
+                                <p class="text-muted small mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ v.location }}</p>
+
+                                <div class="row text-center g-2 bg-light p-2 rounded-3 mb-3 small fw-semibold">
+                                    <div class="col-6 border-end">
+                                        <i class="bi bi-fuel-pump text-warning me-1"></i>{{ v.fuel_type }}
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="bi bi-people text-info me-1"></i>{{ v.seating_capacity }} Seats
+                                    </div>
+                                </div>
+
+                                <p class="card-text text-muted small flex-grow-1">{{ v.description|truncate(80) }}</p>
+
+                                <div class="pt-3 border-top d-flex align-items-center justify-content-between">
+                                    {% if v.is_available %}
+                                        <span class="badge status-approved"><i class="bi bi-check-circle me-1"></i>Available</span>
+                                        <a href="{{ url_for('vehicle_detail', vehicle_id=v.id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                                            Book Now
+                                        </a>
+                                    {% else %}
+                                        <span class="badge status-rejected"><i class="bi bi-x-circle me-1"></i>Unavailable</span>
+                                        <a href="{{ url_for('vehicle_detail', vehicle_id=v.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            View Details
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 bg-white rounded-4 shadow-sm p-5">
+                    <div class="fs-1 text-muted mb-3"><i class="bi bi-search"></i></div>
+                    <h4 class="fw-bold">No Vehicles Found</h4>
+                    <p class="text-muted">No vehicles matched your search filters. Try adjusting your search query or reset filters.</p>
+                    <a href="{{ url_for('vehicle_list') }}" class="btn btn-primary rounded-pill px-4 mt-2">Reset Filters</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
